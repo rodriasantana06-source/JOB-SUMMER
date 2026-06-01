@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Job Summer — Metro Tracker</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f3;color:#1a1a1a;padding:1.5rem}
+h1{font-size:20px;font-weight:600;margin-bottom:0.25rem}
+.subtitle{font-size:13px;color:#888;margin-bottom:1.25rem}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1.25rem;padding:10px 14px;background:#fff;border-radius:10px;border:1px solid #e5e5e5}
+.lg{display:flex;align-items:center;gap:6px;font-size:11px;color:#555}
+.lp{display:inline-block;font-size:10px;font-weight:700;color:#fff;padding:2px 8px;border-radius:10px}
+.pe{background:#E3A615;color:#333}
+.pa{background:#0072BC}
+.pb{background:#BF2033}
+.pd{background:#7B3F9E}
+.pk{background:#DB1F6B}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.25rem}
+.stat{background:#fff;border-radius:10px;border:1px solid #e5e5e5;padding:10px 12px;text-align:center}
+.stat-n{font-size:22px;font-weight:600;line-height:1}
+.stat-l{font-size:11px;color:#888;margin-top:3px}
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem;align-items:center}
+.fb{font-size:12px;padding:5px 12px;border-radius:20px;border:1px solid #ccc;cursor:pointer;background:#fff;color:#555}
+.fb.on{background:#1D9E75;color:#fff;border-color:#1D9E75}
+.lf{font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid transparent;cursor:pointer;font-weight:700;color:#fff;opacity:.35;transition:opacity .15s}
+.lf.on{opacity:1}
+.lfe{background:#E3A615;color:#333;border-color:#E3A615}
+.lfa{background:#0072BC;border-color:#0072BC}
+.lfb{background:#BF2033;border-color:#BF2033}
+.lfd{background:#7B3F9E;border-color:#7B3F9E}
+.lfk{background:#DB1F6B;border-color:#DB1F6B}
+.zone-hdr{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#aaa;margin:1.5rem 0 .5rem;display:flex;align-items:center;gap:8px}
+.zone-hdr::after{content:'';flex:1;height:1px;background:#e5e5e5}
+.zone-desc{font-size:11px;color:#888;margin:-0.25rem 0 0.75rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;margin-bottom:.25rem}
+.card{background:#fff;border:1px solid #e5e5e5;border-radius:10px;padding:10px 12px;transition:border-color .15s}
+.card:hover{border-color:#bbb}
+.card.called{border-color:#0072BC;background:#e6f1fb}
+.card.called .brand{color:#0C447C}
+.card.nh{opacity:.3;pointer-events:none}
+.brand{font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:2px}
+.loc{font-size:11px;color:#777;margin-bottom:6px;line-height:1.4}
+.tag{display:inline-block;font-size:10px;padding:2px 6px;border-radius:4px;font-weight:500;margin-bottom:6px}
+.tag-d{background:#dcf5ec;color:#0a6640}
+.tag-x{background:#fef0d5;color:#7a4800}
+.new-badge{display:inline-block;font-size:9px;font-weight:600;background:#dcf5ec;color:#0a6640;padding:2px 5px;border-radius:4px;margin-left:4px;vertical-align:middle}
+.cb-btn{font-size:10px;padding:4px 10px;border-radius:5px;border:1px solid #ddd;cursor:pointer;background:#f5f5f3;color:#555}
+.cb-btn:hover{background:#e5e5e5}
+.cb-btn.on{background:#0072BC;color:#fff;border-color:#0072BC}
+</style>
+</head>
+<body>
+
+<h1>🗂️ Job Summer — Metro Tracker</h1>
+<p class="subtitle">Call each store, mark it done. All locations reachable by Metro from USC.</p>
+
+<div class="legend">
+  <div class="lg"><span class="lp pe">E</span> Yellow — Santa Monica ↔ East LA via USC &amp; Culver City</div>
+  <div class="lg"><span class="lp pa">A</span> Blue — Long Beach ↔ Azusa/Pasadena via DTLA</div>
+  <div class="lg"><span class="lp pb">B</span> Red — North Hollywood ↔ Union Station via Hollywood &amp; Koreatown (underground)</div>
+  <div class="lg"><span class="lp pd">D</span> Purple — Wilshire/La Cienega ↔ Union Station via Miracle Mile &amp; Koreatown (underground)</div>
+  <div class="lg"><span class="lp pk">K</span> Pink — Expo/Crenshaw ↔ Redondo Beach via Leimert Pk, Inglewood, LAX, El Segundo</div>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="stat-n" id="sT">0</div><div class="stat-l">total locations</div></div>
+  <div class="stat"><div class="stat-n" id="sC">0</div><div class="stat-l">called ✓</div></div>
+  <div class="stat"><div class="stat-n" id="sD">0</div><div class="stat-l">direct metro</div></div>
+  <div class="stat"><div class="stat-n" id="sL">0</div><div class="stat-l">still to call</div></div>
+</div>
+
+<div class="filters">
+  <button class="fb on" onclick="setF('all',this)">All</button>
+  <button class="fb" onclick="setF('direct',this)">Direct metro only</button>
+  <button class="fb" onclick="setF('called',this)">Called</button>
+  <button class="fb" onclick="setF('todo',this)">Still to do</button>
+  <span style="font-size:11px;color:#aaa;margin-left:4px">Lines:</span>
+  <button class="lf lfe on" onclick="tL('E',this)">E</button>
+  <button class="lf lfa on" onclick="tL('A',this)">A</button>
+  <button class="lf lfb on" onclick="tL('B',this)">B</button>
+  <button class="lf lfd on" onclick="tL('D',this)">D</button>
+  <button class="lf lfk on" onclick="tL('K',this)">K</button>
+</div>
+
+<div id="board"></div>
+
+<script>
+const Z=[
+  {id:'dtla',label:'DTLA — The Bloc & FIGat7th · 7th St/Metro Center',desc:'E line from USC (~10 min). A line from Pasadena/Long Beach. B+D from Hollywood/Koreatown. All 4 lines converge here.',lines:['E','A','B','D'],access:'direct',stores:[
+    {b:'Uniqlo',l:'The Bloc, 700 S Flower St'},
+    {b:"Macy's",l:'The Bloc, 700 S Flower St'},
+    {b:'Lululemon',l:'The Bloc, 700 S Flower St'},
+    {b:'Nordstrom Local',l:'The Bloc, 700 S Flower St'},
+    {b:'H&M',l:'FIGat7th, 735 S Figueroa St'},
+    {b:'Zara',l:'FIGat7th, 735 S Figueroa St'},
+    {b:'Nordstrom Rack',l:'FIGat7th, 735 S Figueroa St'},
+    {b:'Banana Republic',l:'FIGat7th, 735 S Figueroa St'},
+    {b:'Express',l:'FIGat7th, 735 S Figueroa St'},
+  ]},
+  {id:'culver',label:'Culver City — Westfield Culver City · Culver City station',desc:'E line west from USC, ~4 stops. Station sits right next to the mall.',lines:['E'],access:'direct',stores:[
+    {b:'H&M',l:'Westfield Culver City, 6000 Sepulveda Blvd'},
+    {b:'Hollister Co.',l:'Westfield Culver City'},
+    {b:'Adidas',l:'Westfield Culver City'},
+    {b:'Uniqlo',l:'Westfield Culver City'},
+    {b:'True Religion',l:'Westfield Culver City'},
+    {b:"Macy's",l:'Westfield Culver City'},
+    {b:'JCPenney',l:'Westfield Culver City'},
+    {b:'Nordstrom Rack',l:'Westfield Culver City'},
+    {b:'Old Navy',l:'Westfield Culver City'},
+  ]},
+  {id:'sm',label:'Santa Monica — 3rd St Promenade + Santa Monica Place · Downtown Santa Monica station',desc:'E line western terminus. ~8 min walk to Promenade from station.',lines:['E'],access:'direct',stores:[
+    {b:'Zara',l:'3rd Street Promenade'},
+    {b:'H&M',l:'3rd Street Promenade'},
+    {b:'Abercrombie & Fitch',l:'1325 3rd St Promenade'},
+    {b:'Hollister Co.',l:'3rd Street Promenade'},
+    {b:'AllSaints',l:'3rd Street Promenade'},
+    {b:'JD Sports',l:'3rd Street Promenade'},
+    {b:'Tillys',l:'3rd Street Promenade'},
+    {b:'UNTUCKit',l:'3rd Street Promenade'},
+    {b:'Vans',l:'3rd Street Promenade'},
+    {b:'Lululemon',l:'3rd Street Promenade'},
+    {b:'Patagonia',l:'1345 3rd St'},
+    {b:'Uniqlo',l:'Santa Monica Place'},
+    {b:'Nike',l:'Santa Monica Place'},
+    {b:'Nordstrom',l:'Santa Monica Place'},
+    {b:'Gap',l:'Santa Monica Place'},
+    {b:'Banana Republic',l:'Santa Monica Place'},
+    {b:'Old Navy',l:'Santa Monica Place'},
+  ]},
+  {id:'labrea',label:'Miracle Mile / La Brea · Wilshire/La Brea station (D line — opened May 8 2026)',desc:'Brand new D line stop. Arc\'teryx is steps from the exit on La Brea. Melrose corridor is ~10 min walk north.',lines:['D'],access:'direct',stores:[
+    {b:"Arc'teryx",l:'159 S La Brea Ave',n:1},
+    {b:'American Rag',l:'150 S La Brea Ave',n:1},
+    {b:'Urban Outfitters',l:'7660 Melrose Ave (~10 min walk north)',n:1},
+    {b:'Free People',l:'Melrose Ave (~10 min walk north)',n:1},
+    {b:'Aritzia',l:'Melrose / La Brea area',n:1},
+    {b:'Fred Segal',l:'8100 Melrose Ave',n:1},
+  ]},
+  {id:'fairfax',label:'Fairfax District · Wilshire/Fairfax station (D line — opened May 8 2026)',desc:'New D line stop on Miracle Mile. Fairfax Ave streetwear corridor heads north from here. Beverly Center ~10 min walk.',lines:['D'],access:'direct',stores:[
+    {b:'Supreme',l:'Fairfax Ave, Los Angeles',n:1},
+    {b:'Stussy',l:'Fairfax Ave, Los Angeles',n:1},
+    {b:'Nike (Fairfax)',l:'Fairfax Ave / Melrose area',n:1},
+    {b:'Beverly Center — H&M',l:'8500 Beverly Blvd (~10 min walk)',n:1},
+    {b:"Beverly Center — Macy's",l:'8500 Beverly Blvd (~10 min walk)',n:1},
+    {b:'Beverly Center — Zara',l:'8500 Beverly Blvd (~10 min walk)',n:1},
+  ]},
+  {id:'ktown',label:'Koreatown · Wilshire/Vermont & Wilshire/Western stations',desc:'B line from Hollywood/NoHo. D line from DTLA and now Miracle Mile. Two separate station stops, both walkable to Ktown malls.',lines:['B','D'],access:'direct',stores:[
+    {b:'Koreatown Galleria',l:'3250 W Olympic Blvd — 70+ shops'},
+    {b:'Koreatown Plaza',l:'928 S Western Ave — 80 shops'},
+    {b:'Madang Mall',l:'621 S Western Ave — boutiques'},
+    {b:'H&M',l:'Near Wilshire/Western station'},
+  ]},
+  {id:'hollywood',label:'Hollywood — Ovation Hollywood · Hollywood/Highland station',desc:'B line red subway, station is inside the Ovation Hollywood complex. Straight shot from DTLA or North Hollywood.',lines:['B'],access:'direct',stores:[
+    {b:'Hot Topic',l:'Ovation Hollywood, 6801 Hollywood Blvd'},
+    {b:'Lucky Brand',l:'Ovation Hollywood, 6801 Hollywood Blvd'},
+    {b:'Skechers',l:'Ovation Hollywood, 6801 Hollywood Blvd'},
+    {b:'Foot Locker',l:'Ovation Hollywood, 6801 Hollywood Blvd'},
+    {b:'H&M',l:'Hollywood Blvd near Highland Ave'},
+    {b:'Urban Outfitters',l:'Hollywood Blvd area'},
+  ]},
+  {id:'pasadena',label:'Old Town Pasadena · Memorial Park station',desc:'A line runs northeast from DTLA through South Pasadena. Colorado Blvd shopping strip is a short walk from station.',lines:['A'],access:'direct',stores:[
+    {b:'Lululemon',l:'40 W Colorado Blvd'},
+    {b:'Anthropologie',l:'16 W Colorado Blvd'},
+    {b:'Urban Outfitters',l:'6 W Colorado Blvd'},
+    {b:'Banana Republic',l:'80 W Colorado Blvd'},
+    {b:'Gap',l:'70 W Colorado Blvd'},
+    {b:'H&M',l:'Colorado Blvd, Pasadena'},
+    {b:"Arc'teryx",l:'107 W Colorado Blvd'},
+    {b:'Patagonia',l:'47 N Fair Oaks Ave',nh:1},
+  ]},
+  {id:'arcadia',label:'Arcadia — Shops at Santa Anita · Arcadia station',desc:'A line continues northeast past Pasadena through Arcadia. Short walk from station to mall entrance.',lines:['A'],access:'direct',stores:[
+    {b:'REI',l:'214 N Santa Anita Ave'},
+    {b:'Zara',l:'Shops at Santa Anita, 400 S Baldwin Ave'},
+    {b:'H&M',l:'Shops at Santa Anita, 400 S Baldwin Ave'},
+    {b:'Uniqlo',l:'Shops at Santa Anita, 400 S Baldwin Ave'},
+    {b:'Anthropologie',l:'Shops at Santa Anita, 400 S Baldwin Ave'},
+    {b:'Free People',l:'Shops at Santa Anita, 400 S Baldwin Ave'},
+    {b:'American Eagle',l:'Shops at Santa Anita, 400 S Baldwin Ave'},
+    {b:'Abercrombie & Fitch',l:'Shops at Santa Anita, 400 S Baldwin Ave'},
+    {b:'Hollister Co.',l:'Shops at Santa Anita, 400 S Baldwin Ave'},
+    {b:'Gap',l:'Shops at Santa Anita, 400 S Baldwin Ave'},
+    {b:'Old Navy',l:'Shops at Santa Anita, 400 S Baldwin Ave'},
+    {b:'Banana Republic',l:'Shops at Santa Anita, 400 S Baldwin Ave'},
+    {b:'Lululemon',l:'Shops at Santa Anita, 400 S Baldwin Ave'},
+    {b:"Macy's",l:'Shops at Santa Anita, 400 S Baldwin Ave'},
+    {b:'Nordstrom Rack',l:'Shops at Santa Anita, 400 S Baldwin Ave'},
+  ]},
+  {id:'inglewood',label:'Leimert Park / Inglewood · MLK Jr, Leimert Park, Hyde Park stations',desc:'K line goes south from Expo/Crenshaw (transfer from E line). Crenshaw corridor retail within walking distance.',lines:['K'],access:'direct',stores:[
+    {b:'Burlington',l:'Crenshaw corridor near K line'},
+    {b:'Ross Dress for Less',l:'Downtown Inglewood, near Downtown Inglewood station'},
+    {b:'Marshalls',l:'Crenshaw corridor'},
+    {b:'Rainbow Shops',l:'11294 Crenshaw Blvd'},
+  ]},
+  {id:'manhattan',label:'Manhattan Beach / El Segundo — REI · Douglas station',desc:'K line continues south past LAX to Douglas station (at Douglas St & Rosecrans Ave, El Segundo). REI Manhattan Beach is 2,010 ft away — confirmed ~5 min walk.',lines:['K'],access:'direct',stores:[
+    {b:'REI',l:'1800 Rosecrans Ave, Manhattan Beach — ~5 min walk from Douglas station'},
+  ]},
+];
+
+let st={};
+try{st=JSON.parse(localStorage.getItem('jt_v6')||'{}');}catch(e){}
+let aF='all',aL=new Set(['E','A','B','D','K']);
+
+function k(z,b,l){return z+'|'+b+'|'+l;}
+function tog(key){
+  if(!st[key])st[key]={};
+  st[key].c=!st[key].c;
+  try{localStorage.setItem('jt_v6',JSON.stringify(st));}catch(e){}
+  render();
+}
+function setF(f,el){aF=f;document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));el.classList.add('on');render();}
+function tL(l,el){if(aL.has(l))aL.delete(l);else aL.add(l);el.classList.toggle('on');render();}
+
+function render(){
+  let html='',tot=0,cal=0,dir=0;
+  Z.forEach(z=>{
+    const zl=z.lines.filter(l=>aL.has(l));
+    if(!zl.length)return;
+    let cards='';
+    z.stores.forEach(s=>{
+      const key=k(z.id,s.b,s.l);
+      const isC=!!(st[key]&&st[key].c);
+      const isNH=!!s.nh;
+      tot++;if(isC)cal++;if(z.access==='direct')dir++;
+      if(aF==='direct'&&z.access!=='direct')return;
+      if(aF==='called'&&!isC)return;
+      if(aF==='todo'&&(isC||isNH))return;
+      const ks=key.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+      const nb=s.n?'<span class="new-badge">new station</span>':'';
+      cards+=`<div class="card${isC?' called':''}${isNH?' nh':''}">
+        <div class="brand">${s.b}${nb}${isNH?' <span style="font-size:9px;color:#bbb">(not hiring)</span>':''}</div>
+        <div class="loc">${s.l}</div>
+        <span class="tag ${z.access==='direct'?'tag-d':'tag-x'}">${z.access==='direct'?'direct metro':'transfer'}</span><br>
+        <button class="cb-btn${isC?' on':''}" onclick="tog('${ks}')">${isC?'✓ Called':'Mark called'}</button>
+      </div>`;
+    });
+    if(cards){
+      const pills=z.lines.map(l=>`<span class="lp p${l.toLowerCase()}">${l}</span>`).join('');
+      html+=`<div class="zone-hdr">${pills}${z.label}</div>`;
+      html+=`<div class="zone-desc">${z.desc}</div>`;
+      html+=`<div class="grid">${cards}</div>`;
+    }
+  });
+  document.getElementById('board').innerHTML=html||'<p style="color:#aaa;font-size:13px;padding:1rem 0">No locations match current filters.</p>';
+  document.getElementById('sT').textContent=tot;
+  document.getElementById('sC').textContent=cal;
+  document.getElementById('sD').textContent=dir;
+  document.getElementById('sL').textContent=tot-cal;
+}
+render();
+</script>
+</body>
+</html>
